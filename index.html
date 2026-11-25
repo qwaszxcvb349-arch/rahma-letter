@@ -233,6 +233,14 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #f43f5e;
         }
+
+        #fx-canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:45}
+        .tw-cursor::after{content:"|";color:#e11d48;animation:blink .8s steps(1) infinite}
+        @keyframes blink{50%{opacity:0}}
+        #lyric-pill{position:fixed;bottom:4.2rem;left:1rem;z-index:50;max-width:80vw;opacity:0;transform:translateY(8px);transition:all .6s ease;pointer-events:none}
+        #lyric-pill.show{opacity:1;transform:none}
+        #yt-holder{position:fixed;width:2px;height:2px;opacity:0;pointer-events:none;left:-10px;bottom:0;overflow:hidden}
+        @media (prefers-reduced-motion: reduce){.butterfly,.rose-petal{display:none}}
     </style>
     <!-- Tailwind CSS (ملف محلي بدل الـ CDN عشان الصفحة تفتح بسرعة على أي شبكة) -->
     <link rel="stylesheet" href="tailwind.css">
@@ -275,13 +283,16 @@
     </div>
 
     <!-- حاوية الفراشات والبتلات المتحركة -->
+    <canvas id="fx-canvas"></canvas>
+    <div id="yt-holder"><div id="yt-player"></div></div>
+    <div id="lyric-pill" class="glass-card px-4 py-2 rounded-2xl font-ruqaa text-lg text-rose-700 text-center">إنتي الحتة الحلوة في قلبي.. ببقى في قربك مش قلقان 🤍</div>
     <div id="ambient-layer" class="fixed inset-0 pointer-events-none z-30 overflow-hidden"></div>
 
     <!-- زر التحكم في الموسيقى الهادئة العائم -->
     <button id="music-toggle" onclick="toggleRomanticMusic()" title="تشغيل / إيقاف الموسيقى الهادئة"
         class="fixed bottom-4 left-4 z-50 glass-card px-3.5 py-2.5 rounded-full flex items-center gap-2 text-rose-700 hover:bg-rose-100/90 transition-all shadow-lg text-xs sm:text-sm font-semibold border border-rose-200">
         <span id="music-icon" class="text-base">🎵</span>
-        <span id="music-label">موسيقى هادية</span>
+        <span id="music-label">شغّلي أغنيتنا</span>
     </button>
 
     <!-- ========================================== -->
@@ -397,16 +408,13 @@
                                     <span class="text-2xl">🌹</span>
                                 </div>
 
-                                <p class="font-amiri text-xl sm:text-2xl text-rose-950 leading-loose">
-                                    بحبك والله العظيم، وحبك ده مش مجرد كلمة بتتقال، ده إحساس مالي قلبي ومخلي لكل حاجة حواليا معنى وطعم تاني. من يوم ما عرفتك والدنيا بقت أحلى وأهدى، وجودك في حياتي بقى أمان وراحة وسبب كبير لابتسامتي.
-                                </p>
+                                <p data-type class="font-amiri text-xl sm:text-2xl text-rose-950 leading-loose">رحمة.. بصراحة معرفش أبدأ منين، أنا مش بعرف أتكلم كتير بس هحاول. من ساعة ما دخلتي حياتي وأنا يومي بقى أحسن، حتى لو كنت زهقان أو مضايق، أول ما أسمع صوتك بنسى كل حاجة. وضحكتك دي والله بتعمل فيا حاجات.</p>
 
-                                <p class="font-amiri text-xl sm:text-2xl text-rose-950 leading-loose">
-                                    مهما عدت الأيام ومهما اتغيرت الظروف، هفضل أحبك وهفضل جنبك ومعاكي للابد. إنتي مش بس حبيبتي ومراتي، إنتي أجمل حاجة حصلتلي وهتفضل دايماً في قلبي.
-                                </p>
+                                <p data-type class="font-amiri text-xl sm:text-2xl text-rose-950 leading-loose">وعايزك تعرفي إني مش هسيبك مهما حصل. ممكن أغلط أو أبقى رخم شوية (إنتي عارفاني 😅) بس قلبي معاكي دايماً. إنتي الحتة الحلوة في قلبي بجد، وببقى مطمن أوي لما أكون جنبك. بحبك يا رحمة، ومتنسيش ده أبداً.</p>
 
+                                <!-- PERSONAL_DETAIL_SLOT: لو في اسم دلع أو ذكرى، تتحط هنا كفقرة تالتة بنفس الشكل -->
                                 <div class="pt-4 border-t border-rose-100 flex items-center justify-between text-rose-600">
-                                    <span class="text-sm font-semibold">حبيبك وجوزك للأبد ❤️</span>
+                                    <span class="text-sm font-semibold">من حبيبك ❤️</span>
                                     <span class="font-ruqaa text-xl">مع بعض للابد</span>
                                 </div>
                             </div>
@@ -492,7 +500,7 @@
 
                     <div id="sweet-note-box" class="min-h-[84px] flex items-center justify-center bg-white/80 rounded-2xl p-4 border border-rose-200 transition-all">
                         <p id="sweet-note-text" class="font-amiri text-xl sm:text-2xl text-rose-700 font-bold">
-                            "إنتي أجمل حاجة حصلت في عمري كله يا رحمة ❤️"
+                            "إنتي أحلى حاجة حصلتلي يا رحمة ❤️"
                         </p>
                     </div>
 
@@ -617,6 +625,8 @@
                 prompt.textContent = 'رسالتي ليكي يا كل دنيتي ❤️';
                 sub.textContent = 'بحبك وهفضل أحبك للابد';
                 envelopeOpened = true;
+                startFireworks();
+                setTimeout(startTypewriter, 700);
 
                 // إطلاق فراشات من الظرف
                 const rect = envelope.getBoundingClientRect();
@@ -635,13 +645,14 @@
         // 3. المميزات التفاعلية (الرسائل السريعة + مقياس الحب)
         // ==========================================
         const sweetNotes = [
-            "إنتي أجمل حاجة حصلت في عمري كله يا رحمة ❤️",
-            "ابتسامتك لوحدها قادرة تغير مودي 180 درجة 🌸",
-            "ربنا يخليكي ليا وميحرمنيش من وجودك أبداً 👑",
-            "كل يوم بيعدي عليا معاكي بتأكد إني اخترت صح 🦋",
-            "إنتي مراتي وحبيبتي وبنتي وكل أهلي 🌹",
-            "بحبك النهاردة وبكرة وبعدين وللأبد 💕",
-            "وجودك جنبي هو الأمان اللي كنت بدور عليه طول عمري ✨"
+            "إنتي أحلى حاجة حصلتلي يا رحمة ❤️",
+            "ضحكتك لوحدها بتظبط مودي في ثانية 🌸",
+            "كل ما أفتكرك بلاقيني بضحك لوحدي زي الهبل 😅",
+            "ربنا يخليكي ليا ومايحرمنيش منك 🤍",
+            "بحس إني مطمن أوي لما أكون معاكي ✨",
+            "أنا مش بعرف أقول كلام حلو كتير، بس بحبك بجد 💕",
+            "إنتي الحتة الحلوة في قلبي 🌹",
+            "لو الدنيا زحمة، إنتي دايماً المكان الهادي بتاعي 🦋"
         ];
         let noteIndex = 0;
 
@@ -813,59 +824,137 @@
         });
 
         // ==========================================
-        // 5. موسيقى بيانو رومانسية هادئة (Web Audio API)
+        // 5. الأغنية: أحمد سعد - قادر أكمل (الفيديو الرسمي على يوتيوب)
         // ==========================================
-        let audioCtx = null;
-        let isPlayingMusic = false;
-        let musicInterval = null;
+        const SONG_ID = 'nXdNVhzCEpE';
+        const SONG_START = 52; // ثانية بداية "إنتي الحتة الحلوة في قلبي" (ممكن تتعدل)
+        let ytPlayer = null, ytReady = false, isPlayingMusic = false, wantPlay = false;
+
+        function setMusicUI(on) {
+            document.getElementById('music-icon').textContent = on ? '🎶' : '🎵';
+            document.getElementById('music-label').textContent = on ? 'شغالة بحب' : 'شغّلي أغنيتنا';
+            document.getElementById('lyric-pill').classList.toggle('show', on);
+            isPlayingMusic = on;
+        }
+
+        function loadYT() {
+            if (window.YT && window.YT.Player) { onYouTubeIframeAPIReady(); return; }
+            if (document.getElementById('yt-api')) return;
+            const t = document.createElement('script');
+            t.id = 'yt-api';
+            t.src = 'https://www.youtube.com/iframe_api';
+            document.head.appendChild(t);
+        }
+
+        window.onYouTubeIframeAPIReady = function () {
+            if (ytPlayer) return;
+            ytPlayer = new YT.Player('yt-player', {
+                width: '200', height: '200', videoId: SONG_ID,
+                playerVars: { autoplay: 1, controls: 0, playsinline: 1, rel: 0, start: SONG_START, origin: location.origin },
+                events: {
+                    onReady: (e) => { ytReady = true; if (wantPlay) { e.target.seekTo(SONG_START, true); e.target.playVideo(); } },
+                    onStateChange: (e) => {
+                        if (e.data === 0) { e.target.seekTo(SONG_START, true); e.target.playVideo(); } // تكرار
+                        if (e.data === 1) setMusicUI(true);
+                    },
+                    onError: () => { wantPlay = false; setMusicUI(false); document.getElementById('music-label').textContent = 'الأغنية مش شغالة دلوقتي'; }
+                }
+            });
+        };
 
         function toggleRomanticMusic() {
-            const icon = document.getElementById('music-icon');
-            const label = document.getElementById('music-label');
-
             if (!isPlayingMusic) {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-
-                isPlayingMusic = true;
-                icon.textContent = '🎶';
-                label.textContent = 'شغالة بحب';
-
-                // نغمات بيانو/صندوق موسيقى هادئة
-                const notes = [523.25, 659.25, 783.99, 987.77, 783.99, 659.25, 587.33, 698.46, 880.00, 698.46];
-                let step = 0;
-
-                const playChime = () => {
-                    if (!isPlayingMusic) return;
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(notes[step % notes.length], audioCtx.currentTime);
-
-                    gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.06, audioCtx.currentTime + 0.08);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.8);
-
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 1.85);
-                    step++;
-                };
-
-                playChime();
-                musicInterval = setInterval(playChime, 850);
+                wantPlay = true;
+                setMusicUI(true);
+                if (ytReady) { ytPlayer.seekTo(SONG_START, true); ytPlayer.playVideo(); }
+                else loadYT();
             } else {
-                isPlayingMusic = false;
-                clearInterval(musicInterval);
-                icon.textContent = '🎵';
-                label.textContent = 'موسيقى هادية';
+                wantPlay = false;
+                if (ytReady) ytPlayer.pauseVideo();
+                setMusicUI(false);
             }
+        }
+
+        // ==========================================
+        // 6. ألعاب نارية خفيفة عند فتح الظرف (canvas)
+        // ==========================================
+        function startFireworks() {
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            const cv = document.getElementById('fx-canvas');
+            const ctx = cv.getContext('2d');
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+            ctx.scale(dpr, dpr);
+            const cols = ['#fb7185', '#f43f5e', '#f9a8d4', '#fbbf24', '#c084fc', '#fff'];
+            let parts = [];
+            function heartShot(cx, cy) {
+                const col = cols[(Math.random() * cols.length) | 0];
+                for (let i = 0; i < 46; i++) {
+                    const t = (i / 46) * Math.PI * 2;
+                    const hx = 16 * Math.pow(Math.sin(t), 3);
+                    const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+                    parts.push({ x: cx, y: cy, vx: hx * 0.16, vy: hy * 0.16, life: 1, col, s: 2.4 });
+                }
+            }
+            function ringShot(cx, cy) {
+                const col = cols[(Math.random() * cols.length) | 0];
+                for (let i = 0; i < 34; i++) {
+                    const a = Math.random() * Math.PI * 2, v = 1 + Math.random() * 3.2;
+                    parts.push({ x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life: 1, col, s: 2 });
+                }
+            }
+            const shots = 7;
+            for (let k = 0; k < shots; k++) {
+                setTimeout(() => {
+                    const x = innerWidth * (0.15 + Math.random() * 0.7), y = innerHeight * (0.15 + Math.random() * 0.35);
+                    (k % 2 === 0 ? heartShot : ringShot)(x, y);
+                }, k * 420);
+            }
+            const end = performance.now() + shots * 420 + 2200;
+            (function frame(now) {
+                ctx.clearRect(0, 0, innerWidth, innerHeight);
+                parts = parts.filter(p => p.life > 0);
+                for (const p of parts) {
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.045; p.vx *= 0.985; p.life -= 0.013;
+                    ctx.globalAlpha = Math.max(p.life, 0);
+                    ctx.fillStyle = p.col;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, 6.283); ctx.fill();
+                }
+                if (now < end || parts.length) requestAnimationFrame(frame);
+                else ctx.clearRect(0, 0, innerWidth, innerHeight);
+            })(performance.now());
+        }
+
+        // ==========================================
+        // 7. الرسالة بتتكتب قدامها حرف حرف (اضغطي عليها عشان تكمل)
+        // ==========================================
+        function startTypewriter() {
+            const ps = Array.from(document.querySelectorAll('p[data-type]'));
+            const full = ps.map(p => p.textContent);
+            const spans = ps.map((p, i) => {
+                p.innerHTML = '<span class="tw-a"></span><span class="tw-b" style="opacity:0"></span>';
+                p.lastChild.textContent = full[i];
+                return [p.firstChild, p.lastChild];
+            });
+            if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                spans.forEach(([a, b], i) => { a.textContent = full[i]; b.textContent = ''; });
+                return;
+            }
+            let pi = 0, ci = 0, done = false, timer;
+            const finish = () => {
+                done = true; clearInterval(timer);
+                spans.forEach(([a, b], i) => { a.textContent = full[i]; b.textContent = ''; a.classList.remove('tw-cursor'); });
+            };
+            ps[0].closest('.letter-content').addEventListener('click', () => { if (!done) finish(); }, { once: true });
+            timer = setInterval(() => {
+                if (pi >= ps.length) return finish();
+                const [a, b] = spans[pi];
+                ci = Math.min(ci + 2, full[pi].length);
+                a.textContent = full[pi].slice(0, ci);
+                b.textContent = full[pi].slice(ci);
+                a.classList.add('tw-cursor');
+                if (ci >= full[pi].length) { a.classList.remove('tw-cursor'); pi++; ci = 0; }
+            }, 32);
         }
     </script>
 </body>
